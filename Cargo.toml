@@ -1,0 +1,32 @@
+[package]
+name = "data_ingestion"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "data_ingestion"
+path = "src/lib.rs"
+
+[dependencies]
+aws-sdk-s3 = "1.8"
+aws-sdk-dynamodb = "1.8"
+aws-config = "1.8"
+csv = "1.1"
+serde_json = "1.0"
+quick-xml = "0.26"
+calamine = "0.18"
+
+mongodb = "2.4"
+reqwest = { version = "0.11", features = ["json"] }
+async-trait = "0.1"
+tokio = { version = "1.25", features = ["full"] }
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+regex = "1.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+aws-sdk-sqs = "1.8"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.0", features = ["v4"] }
+futures-util = { version = "0.3", features = ["sink"] }

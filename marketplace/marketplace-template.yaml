@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Data Ingestion Application - Automated file processing from S3 to NoSQL databases'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Database Configuration"
+        Parameters:
+          - DatabaseType
+          - MongoDBURI
+          - MongoDBDatabase
+      - Label:
+          default: "Infrastructure Configuration"
+        Parameters:
+          - VpcId
+          - SubnetIds
+          - BucketName
+
+Parameters:
+  DatabaseType:
+    Type: String
+    Default: mongodb
+    AllowedValues: [mongodb, documentdb]
+    Description: Choose the database type for storing processed data
+    
+  MongoDBURI:
+    Type: String
+    Default: ""
+    Description: MongoDB connection string (required if Database Type is mongodb)
+    NoEcho: true
+    
+  MongoDBDatabase:
+    Type: String
+    Default: ingestion_db
+    Description: MongoDB database name
+    
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where the application will be deployed
+    
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnet IDs for ECS tasks
+    
+  BucketName:
+    Type: String
+    Default: !Sub "${AWS::StackName}-ingestion-bucket"
+    Description: S3 bucket name for file ingestion
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Event: s3:ObjectCreated:*
+            Queue: !GetAtt SQSQueue.Arn
+
+  SQSQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-ingestion-queue"
+      VisibilityTimeoutSeconds: 300
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${AWS::StackName}-cluster"
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${AWS::StackName}-data-ingestion"
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      Cpu: 512
+      Memory: 1024
+      ExecutionRoleArn: !Ref ExecutionRole
+      TaskRoleArn: !Ref TaskRole
+      ContainerDefinitions:
+        - Name: data-ingestion
+          Image: !Sub "{{resolve:ssm:/marketplace/data-ingestion/image-uri}}"
+          Environment:
+            - Name: DATABASE_TYPE
+              Value: !Ref DatabaseType
+            - Name: MONGODB_URI
+              Value: !Ref MongoDBURI
+            - Name: MONGODB_DATABASE
+              Value: !Ref MongoDBDatabase
+            - Name: SQS_QUEUE_URL
+              Value: !Ref SQSQueue
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonSQSFullAccess
+        - arn:aws:iam::aws:policy/AmazonDocDBFullAccess
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Data Ingestion Security Group
+      VpcId: !Ref VpcId
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${AWS::StackName}"
+      RetentionInDays: 30
+
+Outputs:
+  S3BucketName:
+    Description: S3 bucket for file uploads
+    Value: !Ref S3Bucket
+  SQSQueueUrl:
+    Description: SQS queue URL
+    Value: !Ref SQSQueue
