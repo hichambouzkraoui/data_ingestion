@@ -4,7 +4,7 @@ A Rust application that runs on ECS, ingests files from S3 via SQS events, parse
 
 ## Features
 
-- **File Types Supported**: CSV, JSON, TXT, XML, XLS/XLSX
+- **File Types Supported**: CSV, JSON, TXT, XML, XLS/XLSX, Avro, Parquet
 - **Databases**: MongoDB, CouchDB, DocumentDB
 - **Architecture**: Hexagonal Architecture for clean separation of concerns
 - **Configuration**: Database-driven configuration rules with regex pattern matching
@@ -79,6 +79,8 @@ sam deploy --stack-name sam-app --parameter-overrides ImageUri=test-image --no-c
 # Test specific file type
 ./dev-test.sh csv
 ./dev-test.sh json
+./dev-test.sh avro
+./dev-test.sh parquet
 
 # Test CSV without headers
 ./dev-test.sh csv --no-headers
