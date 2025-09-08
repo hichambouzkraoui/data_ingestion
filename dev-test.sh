@@ -12,8 +12,8 @@ if [[ "$2" == "--no-headers" ]] || [[ "$1" == "--no-headers" && "$2" != "" ]]; t
     fi
 fi
 
-if [[ "$FILE_TYPE" != "csv" && "$FILE_TYPE" != "txt" && "$FILE_TYPE" != "json" && "$FILE_TYPE" != "xml" && "$FILE_TYPE" != "xls" && "$FILE_TYPE" != "pdf" && "$FILE_TYPE" != "avro" && "$FILE_TYPE" != "all" ]]; then
-    echo "Usage: $0 [csv|txt|json|xml|xls|pdf|avro|all] [--no-headers]"
+if [[ "$FILE_TYPE" != "csv" && "$FILE_TYPE" != "txt" && "$FILE_TYPE" != "json" && "$FILE_TYPE" != "xml" && "$FILE_TYPE" != "xls" && "$FILE_TYPE" != "pdf" && "$FILE_TYPE" != "avro" && "$FILE_TYPE" != "parquet" && "$FILE_TYPE" != "all" ]]; then
+    echo "Usage: $0 [csv|txt|json|xml|xls|pdf|avro|parquet|all] [--no-headers]"
     echo "       $0 --no-headers [csv]"
     exit 1
 fi
@@ -186,6 +186,14 @@ test_avro() {
     echo "✅ Avro file uploaded! Verify with: docker-compose exec mongodb mongosh ingestion_db --eval \"db.avro_data.find().pretty()\""
 }
 
+test_parquet() {
+    echo "📄 Creating Parquet test file..."
+    mkdir -p data
+    python3 generate_parquet.py data/test.parquet
+    aws --endpoint-url=http://localhost:4566 s3 cp data/test.parquet s3://$BUCKET_NAME/data/test.parquet
+    echo "✅ Parquet file uploaded! Verify with: docker-compose exec mongodb mongosh ingestion_db --eval \"db.parquet_data.find().pretty()\""
+}
+
 case $FILE_TYPE in
     "csv")
         test_csv
@@ -208,6 +216,9 @@ case $FILE_TYPE in
     "avro")
         test_avro
         ;;
+    "parquet")
+        test_parquet
+        ;;
     "all")
         test_csv
         test_json
@@ -216,6 +227,7 @@ case $FILE_TYPE in
         test_xls
         test_pdf
         test_avro
+        test_parquet
         ;;
 esac
 

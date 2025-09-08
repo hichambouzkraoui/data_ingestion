@@ -52,6 +52,11 @@ db.ingestion_config.insertMany([
     pattern: ".*\\.avro$",
     target_table: "avro_data",
     parser_config: null
+  },
+  {
+    pattern: ".*\\.parquet$",
+    target_table: "parquet_data",
+    parser_config: null
   }
 ]);
 

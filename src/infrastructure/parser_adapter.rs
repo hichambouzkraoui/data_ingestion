@@ -6,6 +6,7 @@ use crate::{
         avro_parser::parse_avro,
         csv_parser::{parse_csv, parse_csv_with_config},
         json_parser::parse_json,
+        parquet_parser::parse_parquet,
         txt_parser::parse_txt,
         xml_parser::parse_xml,
         excel_parser::parse_excel,
@@ -42,6 +43,10 @@ impl DataParser for ParserAdapter {
             "json" => {
                 debug!("Parsing JSON file");
                 parse_json(file_bytes)
+            },
+            "parquet" => {
+                debug!("Parsing Parquet file");
+                parse_parquet(file_bytes)
             },
             "txt" => {
                 debug!("Parsing text file");
