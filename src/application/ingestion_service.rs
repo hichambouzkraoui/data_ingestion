@@ -6,7 +6,6 @@ use crate::domain::{
 use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use tracing::{debug, error, info, warn};
-use uuid::Uuid;
 
 pub struct IngestionService {
     file_fetcher: Arc<dyn FileFetcher>,
@@ -110,7 +109,7 @@ impl IngestionService {
             config.target_table
         );
         let file_name = format!("{}/{}", file.bucket, file.key);
-        let mut documents_with_filename: Vec<serde_json::Value> = documents
+        let documents_with_filename: Vec<serde_json::Value> = documents
             .into_iter()
             .map(|mut doc| {
                 if let serde_json::Value::Object(ref mut map) = doc {
@@ -200,7 +199,7 @@ impl IngestionService {
     }
 
     fn extract_file_type(&self, key: &str) -> String {
-        let file_type = key.split('.').last().unwrap_or("").to_lowercase();
+        let file_type = key.split('.').next_back().unwrap_or("").to_lowercase();
         debug!("Extracted file type '{}' from key: {}", file_type, key);
 
         if file_type.is_empty() {

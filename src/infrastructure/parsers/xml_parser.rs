@@ -22,13 +22,11 @@ pub fn parse_xml(bytes: &[u8]) -> Result<Vec<serde_json::Value>, IngestionError>
                 if name == "record" {
                     current_record = Some(Map::new());
                     // Extract attributes
-                    for attr in e.attributes() {
-                        if let Ok(attr) = attr {
-                            let key = String::from_utf8_lossy(attr.key.as_ref()).to_string();
-                            let value = String::from_utf8_lossy(&attr.value).to_string();
-                            if let Some(ref mut record) = current_record {
-                                record.insert(key, Value::String(value));
-                            }
+                    for attr in e.attributes().filter_map(Result::ok) {
+                        let key = String::from_utf8_lossy(attr.key.as_ref()).to_string();
+                        let value = String::from_utf8_lossy(&attr.value).to_string();
+                        if let Some(ref mut record) = current_record {
+                            record.insert(key, Value::String(value));
                         }
                     }
                 } else if current_record.is_some() {

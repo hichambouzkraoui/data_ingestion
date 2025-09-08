@@ -1,7 +1,6 @@
 use crate::domain::{error::IngestionError, ports::DataRepository};
 use async_trait::async_trait;
-use mongodb::{bson::doc, Client, Collection};
-use uuid::Uuid;
+use mongodb::{Client, Collection};
 
 pub struct DocumentDBDataRepository {
     client: Client,

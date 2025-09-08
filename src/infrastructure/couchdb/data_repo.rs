@@ -5,15 +5,13 @@ use reqwest::Client;
 pub struct CouchDataRepository {
     client: Client,
     base_url: String,
-    database: String,
 }
 
 impl CouchDataRepository {
-    pub fn new(base_url: String, database: String) -> Self {
+    pub fn new(base_url: String, _database: String) -> Self {
         Self {
             client: Client::new(),
             base_url,
-            database,
         }
     }
 }

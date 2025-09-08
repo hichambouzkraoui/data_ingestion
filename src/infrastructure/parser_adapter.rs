@@ -1,18 +1,15 @@
 use crate::{
     domain::{error::IngestionError, ports::DataParser},
     infrastructure::parsers::{
-        avro_parser::parse_avro,
-        csv_parser::{parse_csv, parse_csv_with_config},
-        excel_parser::parse_excel,
-        json_parser::parse_json,
-        parquet_parser::parse_parquet,
-        txt_parser::parse_txt,
+        avro_parser::parse_avro, csv_parser::parse_csv_with_config, excel_parser::parse_excel,
+        json_parser::parse_json, parquet_parser::parse_parquet, txt_parser::parse_txt,
         xml_parser::parse_xml,
     },
 };
 use async_trait::async_trait;
 use tracing::{debug, error, info};
 
+#[derive(Default)]
 pub struct ParserAdapter;
 
 impl ParserAdapter {
