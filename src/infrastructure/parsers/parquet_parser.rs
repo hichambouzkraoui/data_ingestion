@@ -1,8 +1,8 @@
-use crate::domain::error::IngestionError;
-use bytes::Bytes;
 use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+use bytes::Bytes;
 use std::collections::HashMap;
 use tracing::{debug, error, info};
+use crate::domain::error::IngestionError;
 
 pub fn parse_parquet(bytes: &[u8]) -> Result<Vec<serde_json::Value>, IngestionError> {
     debug!("Creating Parquet reader");
