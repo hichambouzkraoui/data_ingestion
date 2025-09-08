@@ -1,13 +1,13 @@
-use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
-use bytes::Bytes;
-use std::collections::HashMap;
-use tracing::{debug, info, error};
 use crate::domain::error::IngestionError;
+use bytes::Bytes;
+use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+use std::collections::HashMap;
+use tracing::{debug, error, info};
 
 pub fn parse_parquet(bytes: &[u8]) -> Result<Vec<serde_json::Value>, IngestionError> {
     debug!("Creating Parquet reader");
     let bytes_data = Bytes::from(bytes.to_vec());
-    
+
     let mut documents = Vec::new();
     let mut record_count = 0;
 
@@ -32,29 +32,40 @@ pub fn parse_parquet(bytes: &[u8]) -> Result<Vec<serde_json::Value>, IngestionEr
         let schema = batch.schema();
         for row_idx in 0..batch.num_rows() {
             let mut row_map = HashMap::new();
-            
+
             for (col_idx, field) in schema.fields().iter().enumerate() {
                 let column = batch.column(col_idx);
                 let value = match column.data_type() {
                     arrow::datatypes::DataType::Utf8 => {
-                        let array = column.as_any().downcast_ref::<arrow::array::StringArray>().unwrap();
+                        let array = column
+                            .as_any()
+                            .downcast_ref::<arrow::array::StringArray>()
+                            .unwrap();
                         serde_json::Value::String(array.value(row_idx).to_string())
-                    },
+                    }
                     arrow::datatypes::DataType::Int32 => {
-                        let array = column.as_any().downcast_ref::<arrow::array::Int32Array>().unwrap();
+                        let array = column
+                            .as_any()
+                            .downcast_ref::<arrow::array::Int32Array>()
+                            .unwrap();
                         serde_json::Value::Number(serde_json::Number::from(array.value(row_idx)))
-                    },
+                    }
                     arrow::datatypes::DataType::Int64 => {
-                        let array = column.as_any().downcast_ref::<arrow::array::Int64Array>().unwrap();
+                        let array = column
+                            .as_any()
+                            .downcast_ref::<arrow::array::Int64Array>()
+                            .unwrap();
                         serde_json::Value::Number(serde_json::Number::from(array.value(row_idx)))
-                    },
-                    _ => serde_json::Value::String(format!("{:?}", column))
+                    }
+                    _ => serde_json::Value::String(format!("{:?}", column)),
                 };
                 row_map.insert(field.name().clone(), value);
             }
-            
+
             record_count += 1;
-            documents.push(serde_json::Value::Object(serde_json::Map::from_iter(row_map)));
+            documents.push(serde_json::Value::Object(serde_json::Map::from_iter(
+                row_map,
+            )));
         }
 
         if record_count % 1000 == 0 {

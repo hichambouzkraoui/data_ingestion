@@ -1,17 +1,16 @@
+use crate::domain::error::IngestionError;
 use calamine::{Reader, Xlsx};
 use std::io::Cursor;
-use tracing::{debug, info, error};
-use crate::domain::error::IngestionError;
+use tracing::{debug, error, info};
 
 pub fn parse_excel(bytes: &[u8]) -> Result<Vec<serde_json::Value>, IngestionError> {
     debug!("Parsing Excel file");
     let cursor = Cursor::new(bytes);
-    let mut workbook: Xlsx<_> = Xlsx::new(cursor)
-        .map_err(|e| {
-            error!("Failed to open Excel file: {}", e);
-            IngestionError::Parse(e.to_string())
-        })?;
-    
+    let mut workbook: Xlsx<_> = Xlsx::new(cursor).map_err(|e| {
+        error!("Failed to open Excel file: {}", e);
+        IngestionError::Parse(e.to_string())
+    })?;
+
     let mut documents = Vec::new();
     if let Some(Ok(range)) = workbook.worksheet_range_at(0) {
         debug!("Processing Excel worksheet");
@@ -36,11 +35,11 @@ pub fn parse_excel(bytes: &[u8]) -> Result<Vec<serde_json::Value>, IngestionErro
             documents.push(serde_json::Value::Object(doc));
             row_count += 1;
         }
-        
+
         info!("Parsed {} rows from Excel file", row_count);
     } else {
         debug!("No worksheet found in Excel file");
     }
-    
+
     Ok(documents)
 }

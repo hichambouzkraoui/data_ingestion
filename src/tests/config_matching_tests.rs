@@ -24,12 +24,13 @@ mod tests {
         ]
     }
 
-    fn find_best_match<'a>(s3_key: &str, rules: &'a [IngestionConfigRule]) -> Option<&'a IngestionConfigRule> {
+    fn find_best_match<'a>(
+        s3_key: &str,
+        rules: &'a [IngestionConfigRule],
+    ) -> Option<&'a IngestionConfigRule> {
         let matching_rules: Vec<_> = rules
             .iter()
-            .filter(|rule| {
-                Regex::new(&rule.pattern).unwrap().is_match(s3_key)
-            })
+            .filter(|rule| Regex::new(&rule.pattern).unwrap().is_match(s3_key))
             .collect();
 
         matching_rules
@@ -41,7 +42,7 @@ mod tests {
     fn test_specific_pattern_wins() {
         let rules = create_test_rules();
         let result = find_best_match("data/test_no_headers.csv", &rules).unwrap();
-        
+
         assert_eq!(result.target_table, "csv_no_headers_data");
         assert_eq!(result.pattern, ".*test_no_headers\\.csv$");
     }
@@ -50,7 +51,7 @@ mod tests {
     fn test_general_pattern_fallback() {
         let rules = create_test_rules();
         let result = find_best_match("data/regular.csv", &rules).unwrap();
-        
+
         assert_eq!(result.target_table, "csv_data");
         assert_eq!(result.pattern, ".*\\.csv$");
     }
@@ -59,7 +60,7 @@ mod tests {
     fn test_no_match() {
         let rules = create_test_rules();
         let result = find_best_match("data/file.txt", &rules);
-        
+
         assert!(result.is_none());
     }
 
@@ -67,7 +68,7 @@ mod tests {
     fn test_excel_reports_match() {
         let rules = create_test_rules();
         let result = find_best_match("reports/monthly.xlsx", &rules).unwrap();
-        
+
         assert_eq!(result.target_table, "excel_reports");
     }
 }

@@ -2,8 +2,8 @@
 mod tests {
     use crate::infrastructure::parsers::parquet_parser::parse_parquet;
     use arrow::array::{Int32Array, StringArray};
-    use arrow::record_batch::RecordBatch;
     use arrow::datatypes::{DataType, Field, Schema};
+    use arrow::record_batch::RecordBatch;
     use parquet::arrow::ArrowWriter;
     use std::sync::Arc;
 
@@ -25,7 +25,8 @@ mod tests {
                 Arc::new(age_array),
                 Arc::new(email_array),
             ],
-        ).unwrap();
+        )
+        .unwrap();
 
         let mut buffer = Vec::new();
         {
@@ -40,7 +41,7 @@ mod tests {
     fn test_parse_parquet_success() {
         let parquet_data = create_test_parquet_data();
         let result = parse_parquet(&parquet_data).unwrap();
-        
+
         assert_eq!(result.len(), 2);
         assert_eq!(result[0]["name"], "John Doe");
         assert_eq!(result[0]["age"], 25);
@@ -52,7 +53,7 @@ mod tests {
     fn test_parse_invalid_parquet() {
         let invalid_data = b"invalid parquet data";
         let result = parse_parquet(invalid_data);
-        
+
         assert!(result.is_err());
     }
 }
