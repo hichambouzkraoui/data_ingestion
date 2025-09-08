@@ -41,7 +41,7 @@ impl DataRepository for DocumentDBDataRepository {
         }
 
         let result = collection
-            .insert_many(docs_to_insert, None)
+            .insert_many(docs_to_insert)
             .await
             .map_err(|e| IngestionError::Database(e.to_string()))?;
 

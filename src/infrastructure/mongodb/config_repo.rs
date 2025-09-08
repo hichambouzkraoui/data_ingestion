@@ -28,7 +28,7 @@ impl ConfigRepository for MongoConfigRepository {
     ) -> Result<Option<IngestionConfigRule>, IngestionError> {
         debug!("Searching for config rule matching S3 key: {}", s3_key);
 
-        let mut cursor = self.collection.find(doc! {}, None).await.map_err(|e| {
+        let mut cursor = self.collection.find(doc! {}).await.map_err(|e| {
             error!("Failed to query config collection: {}", e);
             IngestionError::Database(e.to_string())
         })?;

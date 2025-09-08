@@ -30,7 +30,7 @@ impl ConfigRepository for DocumentDBConfigRepository {
         let collection: Collection<mongodb::bson::Document> = db.collection(&self.collection_name);
 
         let mut cursor = collection
-            .find(doc! {}, None)
+            .find(doc! {})
             .await
             .map_err(|e| IngestionError::Database(e.to_string()))?;
 

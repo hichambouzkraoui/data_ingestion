@@ -38,7 +38,7 @@ impl LogRepository for MongoLogRepository {
             IngestionError::Database(e.to_string())
         })?;
 
-        let result = collection.insert_one(doc, None).await.map_err(|e| {
+        let result = collection.insert_one(doc).await.map_err(|e| {
             error!("Failed to insert log for {}: {}", log.file_name, e);
             IngestionError::Database(e.to_string())
         })?;
@@ -86,7 +86,7 @@ impl LogRepository for MongoLogRepository {
         debug!("Update document: {:?}", update_doc);
 
         let result = collection
-            .update_one(doc! { "_id": object_id }, update_doc, None)
+            .update_one(doc! { "_id": object_id }, update_doc)
             .await
             .map_err(|e| {
                 error!("Failed to update log {}: {}", log_id, e);

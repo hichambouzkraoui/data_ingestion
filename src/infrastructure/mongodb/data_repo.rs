@@ -81,7 +81,7 @@ impl DataRepository for MongoDataRepository {
             "Inserting documents into MongoDB collection: {}",
             target_table
         );
-        let result = collection.insert_many(docs, None).await.map_err(|e| {
+        let result = collection.insert_many(docs).await.map_err(|e| {
             error!("Failed to insert documents into {}: {}", target_table, e);
             IngestionError::Database(e.to_string())
         })?;
