@@ -33,7 +33,7 @@ jobs:
           DEBUG: 1
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
@@ -82,7 +82,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
@@ -100,7 +100,7 @@ jobs:
       image: ${{ steps.build-image.outputs.image }}
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -130,7 +130,7 @@ jobs:
     environment: staging
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -158,7 +158,7 @@ jobs:
     environment: production
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
