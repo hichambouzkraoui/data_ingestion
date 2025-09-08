@@ -80,6 +80,9 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
     - uses: actions/checkout@v4
     
@@ -88,8 +91,11 @@ jobs:
       with:
         toolchain: stable
 
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+    
     - name: Security audit
-      uses: rustsec/audit-check@v1.4.1
+      run: cargo audit
 
   build:
     needs: [test, security]
