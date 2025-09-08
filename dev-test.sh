@@ -12,8 +12,8 @@ if [[ "$2" == "--no-headers" ]] || [[ "$1" == "--no-headers" && "$2" != "" ]]; t
     fi
 fi
 
-if [[ "$FILE_TYPE" != "csv" && "$FILE_TYPE" != "txt" && "$FILE_TYPE" != "json" && "$FILE_TYPE" != "xml" && "$FILE_TYPE" != "xls" && "$FILE_TYPE" != "pdf" && "$FILE_TYPE" != "all" ]]; then
-    echo "Usage: $0 [csv|txt|json|xml|xls|pdf|all] [--no-headers]"
+if [[ "$FILE_TYPE" != "csv" && "$FILE_TYPE" != "txt" && "$FILE_TYPE" != "json" && "$FILE_TYPE" != "xml" && "$FILE_TYPE" != "xls" && "$FILE_TYPE" != "pdf" && "$FILE_TYPE" != "avro" && "$FILE_TYPE" != "all" ]]; then
+    echo "Usage: $0 [csv|txt|json|xml|xls|pdf|avro|all] [--no-headers]"
     echo "       $0 --no-headers [csv]"
     exit 1
 fi
@@ -102,15 +102,20 @@ test_xml() {
 }
 
 test_xls() {
-    echo "📄 Creating XLS test file..."
+    echo "📄 Creating real Excel file..."
     mkdir -p data
-    echo "name,age,department
-Alice,28,HR
-Charlie,32,Finance" > data/test.csv
-    # Convert to xlsx using a simple approach (rename for testing)
-    cp data/test.csv data/test.xlsx
-    aws --endpoint-url=http://localhost:4566 s3 cp data/test.xlsx s3://$BUCKET_NAME/data/test.xlsx
-    echo "✅ XLS file uploaded! Verify with: docker-compose exec mongodb mongosh ingestion_db --eval \"db.xls_data.find().pretty()\""
+    python3 generate_excel.py data/test.xlsx
+    if [ $? -eq 0 ]; then
+        aws --endpoint-url=http://localhost:4566 s3 cp data/test.xlsx s3://$BUCKET_NAME/data/test.xlsx
+        echo "✅ Real Excel file uploaded! Verify with: docker-compose exec mongodb mongosh ingestion_db --eval \"db.xls_data.find().pretty()\""
+    else
+        echo "❌ Failed to create Excel file. Falling back to CSV..."
+        echo "name,age,department,salary
+Alice,28,HR,65000
+Charlie,32,Finance,75000" > data/test_fallback.csv
+        aws --endpoint-url=http://localhost:4566 s3 cp data/test_fallback.csv s3://$BUCKET_NAME/data/test_fallback.csv
+        echo "✅ Fallback CSV uploaded instead"
+    fi
 }
 
 test_pdf() {
@@ -173,6 +178,14 @@ startxref
     echo "✅ PDF file uploaded! Verify with: docker-compose exec mongodb mongosh ingestion_db --eval \"db.pdf_documents.find().pretty()\""
 }
 
+test_avro() {
+    echo "📄 Creating Avro test file..."
+    mkdir -p data
+    python3 generate_avro.py data/test.avro
+    aws --endpoint-url=http://localhost:4566 s3 cp data/test.avro s3://$BUCKET_NAME/data/test.avro
+    echo "✅ Avro file uploaded! Verify with: docker-compose exec mongodb mongosh ingestion_db --eval \"db.avro_data.find().pretty()\""
+}
+
 case $FILE_TYPE in
     "csv")
         test_csv
@@ -192,6 +205,9 @@ case $FILE_TYPE in
     "pdf")
         test_pdf
         ;;
+    "avro")
+        test_avro
+        ;;
     "all")
         test_csv
         test_json
@@ -199,6 +215,7 @@ case $FILE_TYPE in
         test_xml
         test_xls
         test_pdf
+        test_avro
         ;;
 esac
 

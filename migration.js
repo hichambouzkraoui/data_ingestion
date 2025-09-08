@@ -47,6 +47,11 @@ db.ingestion_config.insertMany([
     parser_config: {
       headers: ["name", "age", "email", "city"]
     }
+  },
+  {
+    pattern: ".*\\.avro$",
+    target_table: "avro_data",
+    parser_config: null
   }
 ]);
 

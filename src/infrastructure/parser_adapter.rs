@@ -3,6 +3,7 @@ use tracing::{debug, info, error};
 use crate::{
     domain::{error::IngestionError, ports::DataParser},
     infrastructure::parsers::{
+        avro_parser::parse_avro,
         csv_parser::{parse_csv, parse_csv_with_config},
         json_parser::parse_json,
         txt_parser::parse_txt,
@@ -30,6 +31,10 @@ impl DataParser for ParserAdapter {
         info!("Parsing file with type: {} ({} bytes)", file_type, file_bytes.len());
         
         let result = match file_type {
+            "avro" => {
+                debug!("Parsing Avro file");
+                parse_avro(file_bytes)
+            },
             "csv" => {
                 debug!("Parsing CSV file with config: {:?}", config);
                 parse_csv_with_config(file_bytes, config)
